@@ -1,0 +1,62 @@
+clc
+clear 
+close all
+T = 12e-3;                     % Sampling period
+Fs = 1/T;                      % Sampling frequency
+L = 1000;                      % Length of signal
+[inSig, t] = wave_signal(); %triangle wave from hw 3 
+f = 2*pi*Fs;
+
+
+% Conventional AM
+m = 0.5;                         % Modulation index
+fc = 5000;                      % Carrier frequency
+DC = 7;                          % DC level
+
+x0 = inSig;                      %input wave
+x1 = DC*(1+m*x0).*cos(2*pi*fc*t); % modulation
+%input multiplied with DC,Modulation index and carrier
+xdemod = (x1.*cos(2*pi*fc*t))-DC*m;        %demodulation
+% modulated siginal mulitiplied with carrier signal minus DC Modulation index
+a = fir1(90,0.01);
+b = 1;                       %digital filter to normalize the demodulated signal
+x3 = (filter(a,b,xdemod));   %and create output signal
+
+
+
+X = [x0; x1; x3]; % array of all signals used for FFT
+n = 2^nextpow2(L);
+dim = 2;
+Y = fft(X,n,dim); %FFT for frequency spectrum
+P2 = abs(Y/n);
+P1 = P2(:,1:n/2+1);
+P1(:,2:end-1) = 2*P1(:,2:end-1);
+
+% polt frequency spectrums
+figure(1)
+subplot(2,1,1); 
+plot(t(1:end),x0(1:end))
+title('Input Signal') 
+subplot(2,1,2); 
+plot(0:(Fs/n):(Fs/2-Fs/n),P1(1,1:n/2))
+title('Frequency Spectrum of Input Signal')
+grid on ; 
+figure(2)
+subplot(2,1,1);
+plot(t(1:end),x1(1:end))
+title('Conventional AM Modulated Signal')
+grid on ; 
+subplot(2,1,2); 
+stem(0:(Fs/n):(Fs/2-Fs/n),P1(2,1:n/2))
+title('Frequency Spectrum of Modulated Signal')
+grid on ; 
+
+figure(3)
+subplot(2,1,1);
+plot(t(1:end),x3(1:end))
+title('Demodulated Signal')
+grid on ; 
+subplot(2,1,2);
+plot(0:(Fs/n):(Fs/2-Fs/n),P1(3,1:n/2))
+title('Frequency Spectrum of Demodulated Signal')
+grid on ; 
